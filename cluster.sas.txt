@@ -1,0 +1,58 @@
+
+%macro clustplot(dataset=, printnum=.); 
+   data temp; set &dataset.; 
+    if &printnum. ne . then do;
+      if _ncl_ > &printnum. then delete;
+    end;
+  run;
+  proc sort data=temp; by _ncl_ ; run; 
+  data temp; set temp; by _ncl_;  
+    if first._ncl_ then output;
+  run;
+
+  data plot1; set temp;
+    value=_rmsstd_;
+    group='RMSSTD';
+    output plot1;
+    value=_sprsq_;
+    group='Semi-Partial RSQ';
+    output plot1;
+    value=_rsq_;
+    group='R-Squared';
+    output plot1;
+    keep _ncl_ value group;
+  run;
+
+proc sort data=plot1; by group _ncl_;
+
+data plot2; set temp;
+  value=_height_;
+  group='Cluster Distance';
+  output plot2;
+  keep _ncl_ value group;
+run;
+
+proc sort data=plot1; by group _ncl_;
+
+
+SYMBOL1 V='1' C=BLACK H=1.5  width=2 I=JOIN L=1;
+SYMBOL2 V='2' C=red H=1.5  width=2 I=JOIN L=2;
+SYMBOL3 V='3' C=blue H=1.5 width=2 I=JOIN L=3;
+SYMBOL4 V='4' C=green H=1.5  width=2 I=JOIN L=4;
+
+title  "Evaluation of Number of Clusters - RSQ, Semi-P, RMSSTD";
+proc gplot data=plot1; 
+  plot value*_ncl_=group;
+run;
+
+title  "Evaluation of Number of Clusters - Cluster Distance";
+proc gplot data = plot2; 
+  plot value*_ncl_;
+run;
+
+%mend;
+
+
+
+
+
