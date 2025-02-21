@@ -1,0 +1,100 @@
+#####
+#THIS PROGRAM CREATES FUNCTIONS TO COMPUTE THE SIGNIFICANCE OF SUCCESSIVE 
+#FUNCTIONS IN DISCRIMINANT ANALYSIS WITH MORE THAN 3 GROUPS USING
+#SUCCESSIVE WILK'S LAMBDA. IT REQUIRES AS INPUT A MATRIX OF DISCRIMINATORS AND A VECTOR WITH 
+#GROUP IDENTIFICATION.
+#LDA() FUNCTION.
+######
+
+
+
+discriminant.significance <- function(DAdata, DAgroup) {
+
+    DA.group <- split(DAdata, DAgroup)
+    DA.means <- sapply(DA.group, function(x) {
+        apply(x, 2, mean)
+    }, simplify = 'data.frame')
+    
+    DA.size <- sapply(DA.group, function(x) {
+        nrow(x)
+    }, simplify = 'data.frame')
+    
+    DA.N <- dim(DAdata)[1]  #Total Sample Size
+    DA.p <- dim(DAdata)[2] # Vars
+    DA.k <- length(unique(DAgroup))  # Groups
+    
+    total.means <- colMeans(DAdata)
+    num.funcs <- min(length(unique(DAgroup)) - 1, ncol(DAdata))
+    
+    H <-  matrix(data = NA, nrow = DA.p, ncol = DA.p)
+    
+    for (i in 1:dim(H)[1]) {
+        for (j in 1:i) {
+            H[i,j] <- sum(DA.size*((DA.means[i,] - total.means[i]) * (DA.means[j,] - total.means[j])))
+            H[j,i] <- sum(DA.size*((DA.means[j,] - total.means[j]) * (DA.means[i,] - total.means[i])))
+        }
+    }
+    E <-  matrix(data = NA, nrow = DA.p, ncol = DA.p)
+    for (i in 1:dim(E)[1]) {
+        for (j in 1:i) {
+            b <- c() 
+            for (k in DA.group) {
+                a <- sum((k[, i] - mean(k[, i])) * (k[, j] - mean(k[, j])))
+                b <- append(b, a)
+            }
+            E[i,j] <- sum(b)
+            E[j,i] <- sum(b)
+        }
+    }
+    
+    eigenvalues <- eigen(solve(E) %*% H)$values
+  
+    w <- DA.N - 1 - .5 * (DA.p + DA.k)
+    t <- sqrt((DA.p^2 * (DA.k - 1)^2 - 4) / (DA.p^2 + (DA.k - 1)^2 - 5))
+    df1 <- DA.p * (DA.k - 1)
+    df2 <- w * t - .5 * (DA.p * (DA.k - 1) - 2)
+    lambda1 <- prod(1 / (1 + eigenvalues))
+    f1 <- (1 - lambda1^(1/t)) / (lambda1^(1/t)) * df2 / df1
+    p1 <- pf(f1, df1, df2, lower.tail = FALSE)
+    
+    result <- NULL
+    for (i in 2:DA.p) {
+        m <- i
+        
+        if (m == DA.p) {
+            t.i <- 1
+        } else {
+            t.i <- sqrt(((DA.p - m + 1)^2 * (DA.k - m)^2 - 4) / ((DA.p - m + 1)^2 + (DA.k - m)^2 - 5))
+        }
+        
+        df1.i <- (DA.p - m + 1) * (DA.k - m)
+        df2.i <- w * t.i - .5 * ((DA.p - m + 1) * (DA.k - m) - 2)
+        lambda.i <- prod(1 / (1 + eigenvalues[i:DA.p]))
+        f.i <- (1 - lambda.i^(1/t.i)) / lambda.i^(1/t.i) * df2.i / df1.i
+        p.i <- pf(f.i, df1.i, df2.i, lower.tail = FALSE)
+        result <- rbind(result, data.frame(lambda.i, f.i, p.i))
+    }
+        funlabs <- paste0("1 through ",num.funcs)
+    for (i in 2:num.funcs){
+        if (i < num.funcs){
+            funlabs <- c(funlabs, paste0(i," through ",num.funcs) )
+        }
+        else{
+            funlabs <- c(funlabs, i) 
+        }
+    }
+    res <- cbind(funlabs, rbind(c(lambda1, f1, p1), result))
+    for (i in 2:ncol(res)){
+        res[, i] <- round(res[, i], 4)
+    }
+    colnames(res) <- c("Test of Function(s)", "Wilks Lambda", "Approximate F", "p-value")
+    return(res)
+}
+
+
+
+#example
+#discriminant.significance(iris[, c("PetShape", "SepShape")], iris$Species)
+
+
+
