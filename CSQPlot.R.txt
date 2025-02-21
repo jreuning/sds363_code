@@ -2,7 +2,7 @@
 #to test for multivariate normality of data or residuals
 
 
-reschisqplot<-function(vars,label){
+CSQPlot<-function(vars,label="Chi-Square Quantile Plot"){
    #usually, vars is xxx$residuals or data from one group and label is for plot
      x<-cov(scale(vars),use="pairwise.complete.obs")
      squares<-sort(diag(as.matrix(scale(vars))%*%solve(x)%*%as.matrix(t(scale(vars)))))
@@ -18,7 +18,7 @@ reschisqplot<-function(vars,label){
      upper<-quants+2*se
 
     plot(quants,squares,col='red',pch=19,cex=1.2,xlab="Chi-Square Quantiles",
-     ylab=label,main=paste("Chi-Square Quantiles for",label),ylim=range(upper,lower,squares),xlim=range(c(0,quants)))
+     ylab=label,main=paste("Chi-Square Quantiles for",label),ylim=range(upper,lower, squares) , xlim=range(c(0,quants)))
     lines(c(0,100),c(0,100),col=1)
     lines(quants,upper,col="blue",lty=2,lwd=2)
     lines(quants,lower,col="blue",lty=2,lwd=2)
@@ -27,7 +27,7 @@ reschisqplot<-function(vars,label){
 }
 
 #An example of usage of this function
-#reschisqplot(danielaaov$residuals,label="Daniela MANOVA Residuals")
+#CSQPlot(danielaaov$residuals,label="Daniela MANOVA Residuals")
 
 
 
