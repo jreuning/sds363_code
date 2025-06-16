@@ -15,6 +15,7 @@
 # Change Log: 
 # 2/15/14: Added new functionality for plotting. New function option to surpress automatic plotting.
 # 4/5/21: Make separate plot for CD and add ability to change how many cluster solutions are shown
+# 6/16/25: Fix problem on CD plot
 
 gen_cutmat <- function(clus_out, mdim) {
   cut_mat <- matrix(nrow = mdim, ncol = mdim)
@@ -166,7 +167,7 @@ cluster.dis <- function(data, hclust.obj, SPRS_V){
   cluster.mat <- affected.rows(hclust.obj$merge)[[1]]
   affected.rows <- affected.rows(hclust.obj$merge)[[2]]
   
-  if (meth == "ward") cd_vec <- SPRS_V
+  if (meth == "ward.D") cd_vec <- SPRS_V
   
   if (meth == "average"){
     for (i in 1:length(cd_vec)){
