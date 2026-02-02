@@ -79,7 +79,7 @@ pcaThreshold <- function(datax){
   print(round(parallelanal, 2))   
     eigenvalues <- (comp$sdev^2)[1:calclim]
   limits <- as.matrix(parallelanal[,2:4])
-  limits <- limits[complete.cases(limits)]
+  limits <- limits[complete.cases(limits),]
   ymax <- range(c(eigenvalues),limits)
   plot(parallelanal$pcompnum, eigenvalues, xlab="Principal Component Number",
        ylim=c(ymax), ylab="Eigenvalues and Thresholds",
